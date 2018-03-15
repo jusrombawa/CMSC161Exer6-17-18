@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script type="x-shader/x-vertex" id="vshader">
+      attribute vec4 aPosition;
+     
+      uniform mat4 uModelMatrix;               //Model Matrix
+      uniform mat4 uViewMatrix;                //View Matrix
+      void main() {
+      gl_Position = uViewMatrix * uModelMatrix * aPosition;
+      }
+    </script>
+    
+    <script type="x-shader/x-fragment" id="fshader">
+      precision mediump float;
+      uniform vec4 uColor;		
+      void main() {
+      gl_FragColor = uColor;
+      }
+    </script>
+    
+    <!--Import external javascript file-->
+    <!--Helper javascript methods for initializing webgl-->
+    <script src="./lib/webgl-init.js"></script>
+    <script src="./lib/webgl-utils.js"></script>
+    <script src="./lib/webgl-debug.js"></script>
+    <script src="./lib/gl-matrix-min.js"></script>
+    
+    
+    <script>
+      
+      function main() {
+        //Retrieve <canvas> element
+        var canvas = document.getElementById("main_canvas");
+        if(!canvas) {
+          console.log("Failed to retrieve the <canvas> element");
+        }
+        
+        //Get the rendering context (WebGL)
+        var gl = initializeWebGL(canvas,true);
+        //initialize shaders program
+        var vertexShader = initializeShader(gl,"vshader");
+        var fragmentShader = initializeShader(gl, "fshader");
+        var program = initializeProgram(gl,vertexShader,fragmentShader);
+        gl.useProgram(program);
+
+        var aPositionPointer = gl.getAttribLocation(program,"aPosition");
+        gl.enableVertexAttribArray(aPositionPointer);
+
+        var uFragColorPointer = gl.getUniformLocation(program,"uColor");
+        var uModelMatrixPointer = gl.getUniformLocation(program,"uModelMatrix");
+        var uViewMatrixPointer = gl.getUniformLocation(program,"uViewMatrix");
+        
+        gl.clearColor(0.0,0.0,0.0,1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        
+        var modelMatrix;
+        var viewMatrix;
+        
+        /**START VIEW MATRIX SPECIFICATION**/
+        var lookAtPoint = [-0.6,-0.4,0.0,1.0];              //where the camera is looking
+        var eyePoint    = [-0.2,-0.2,0.4,1.0];              //where the camera is placed
+        var upVector    = [2.0,2.0,2.0,0.0];              //orientation of the camera
+
+       
+        viewMatrix = mat4.create();
+        mat4.lookAt(viewMatrix,eyePoint,lookAtPoint,upVector);
+
+        gl.uniformMatrix4fv(uViewMatrixPointer,false,new Float32Array(viewMatrix));
+
+        /**END VIEW MATRIX SPECIFICATION**/
+                
+        //MODEL MATRIX
+        modelMatrix = mat4.create();
+        gl.uniformMatrix4fv(uModelMatrixPointer,false,new Float32Array(modelMatrix));
+        //draw D
+        drawD(gl, aPositionPointer,uFragColorPointer);
+
+        //ROTATE goes here
+        //check if rotates are called
+        var xRotate = document.getElementById("xRotate");
+        var yRotate = document.getElementById("yRotate");
+
+        xRotate.onclick = function(){
+            //clear, rotate then re-draw
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            mat4.rotateX(modelMatrix,modelMatrix,glMatrix.toRadian(90));
+            gl.uniformMatrix4fv(uModelMatrixPointer,false,new Float32Array(modelMatrix));
+            drawD(gl, aPositionPointer,uFragColorPointer);
+        }
+
+        yRotate.onclick = function(){
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            mat4.rotateY(modelMatrix,modelMatrix,glMatrix.toRadian(90));
+            gl.uniformMatrix4fv(uModelMatrixPointer,false,new Float32Array(modelMatrix));
+            drawD(gl, aPositionPointer,uFragColorPointer);
+        }
+        //mat4.rotateX(viewMatrix,viewMatrix,glMatrix.toRadian());
+        //mat4.rotateY(viewMatrix,viewMatrix,glMatrix.toRadian());
+        
+        //mat4.rotateZ(modelMatrix,modelMatrix,glMatrix.toRadian(30));                    //rotate object 45 degrees in the WORLD
+        
+        
+      }
+
+      function drawD(gl, aPositionPointer, uFragColorPointer)
+      {
+        var char_D = [
+        //back
+        -0.5114, 0.7143, 0.0, 1.0,
+        -0.3086, 0.5114, 0.0, 1.0,
+        -0.5114, -0.7143, 0.0, 1.0,
+        -0.3086, -0.5114, 0.0, 1.0,
+
+        0.2457, -0.7143, 0.0, 1.0,
+        0.1600, -0.5114, 0.0, 1.0,
+        0.5057, -0.4514, 0.0, 1.0,
+        0.3057, -0.3657, 0.0, 1.0,
+
+        0.5057, 0.4543, 0.0, 1.0,
+        0.3029, 0.3657, 0.0, 1.0,
+        0.2457, 0.7143, 0.0, 1.0,
+        0.1600, 0.5114, 0.0, 1.0,
+
+        -0.5114, 0.7143, 0.0, 1.0,
+        -0.3086, 0.5114, 0.0, 1.0,
+
+        //outside
+        -0.5114, 0.7143, 0.0, 1.0,
+        -0.5114, 0.7143, 0.5, 1.0,
+        -0.5114, -0.7143, 0.0, 1.0,
+        -0.5114, -0.7143, 0.5, 1.0,
+        
+        -0.5114, -0.7143, 0.0, 1.0,
+        -0.5114, -0.7143, 0.5, 1.0,
+        0.2457, -0.7143, 0.0, 1.0,
+        0.2457, -0.7143, 0.5, 1.0,
+
+        0.2457, -0.7143, 0.0, 1.0,
+        0.2457, -0.7143, 0.5, 1.0,
+        0.5057, -0.4514, 0.0, 1.0,
+        0.5057, -0.4514, 0.5, 1.0,
+        
+        0.5057, -0.4514, 0.0, 1.0,
+        0.5057, -0.4514, 0.5, 1.0,
+        0.5057, 0.4543, 0.0, 1.0,
+        0.5057, 0.4543, 0.5, 1.0,
+
+        0.5057, 0.4543, 0.0, 1.0,
+        0.5057, 0.4543, 0.5, 1.0,
+        0.2457, 0.7143, 0.0, 1.0,
+        0.2457, 0.7143, 0.5, 1.0,
+        
+        0.2457, 0.7143, 0.0, 1.0,
+        0.2457, 0.7143, 0.5, 1.0,
+        -0.5114, 0.7143, 0.0, 1.0,
+        -0.5114, 0.7143, 0.5, 1.0,
+
+        //inside
+        -0.3086, 0.5114, 0.0, 1.0,//2
+        -0.3086, 0.5114, 0.5, 1.0,
+        -0.3086, -0.5114, 0.0, 1.0,//4
+        -0.3086, -0.5114, 0.5, 1.0,
+
+        -0.3086, -0.5114, 0.0, 1.0,//4
+        -0.3086, -0.5114, 0.5, 1.0,
+        0.1600, -0.5114, 0.0, 1.0,//6
+        0.1600, -0.5114, 0.5, 1.0,
+
+        0.1600, -0.5114, 0.0, 1.0,//6
+        0.1600, -0.5114, 0.5, 1.0,
+        0.3057, -0.3657, 0.0, 1.0,//8
+        0.3057, -0.3657, 0.5, 1.0,
+
+        0.3057, -0.3657, 0.0, 1.0,//8
+        0.3057, -0.3657, 0.5, 1.0,
+        0.3029, 0.3657, 0.0, 1.0,//10
+        0.3029, 0.3657, 0.5, 1.0,
+
+        0.3029, 0.3657, 0.0, 1.0,//10
+        0.3029, 0.3657, 0.5, 1.0,
+        0.1600, 0.5114, 0.0, 1.0,//12
+        0.1600, 0.5114, 0.5, 1.0,
+
+        0.1600, 0.5114, 0.0, 1.0,//12
+        0.1600, 0.5114, 0.5, 1.0,
+        -0.3086, 0.5114, 0.0, 1.0,//2
+        -0.3086, 0.5114, 0.5, 1.0,
+
+        //front
+        -0.5114, 0.7143, 0.5, 1.0,
+        -0.3086, 0.5114, 0.5, 1.0,
+        -0.5114, -0.7143, 0.5, 1.0,
+        -0.3086, -0.5114, 0.5, 1.0,
+
+        0.2457, -0.7143, 0.5, 1.0,
+        0.1600, -0.5114, 0.5, 1.0,
+        0.5057, -0.4514, 0.5, 1.0,
+        0.3057, -0.3657, 0.5, 1.0,
+
+        0.5057, 0.4543, 0.5, 1.0,
+        0.3029, 0.3657, 0.5, 1.0,
+        0.2457, 0.7143, 0.5, 1.0,
+        0.1600, 0.5114, 0.5, 1.0,
+
+        -0.5114, 0.7143, 0.5, 1.0,
+        -0.3086, 0.5114, 0.5, 1.0,
+        ];
+        
+        var char_D_buffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER,char_D_buffer);
+        gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(char_D),gl.STATIC_DRAW);
+        gl.vertexAttribPointer(aPositionPointer,4,gl.FLOAT,false,0,0);
+        gl.enableVertexAttribArray(aPositionPointer);
+
+        //back
+        gl.uniform4f(uFragColorPointer,0.0,1.0,0.0,1.0);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 14);        
+/*
+
+*/
+        //inside
+        gl.uniform4f(uFragColorPointer,0.8,0.8,0.0,1.0);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 38, 4);
+        gl.uniform4f(uFragColorPointer,1.0,0.5,0.0,1.0);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 42, 4);
+        gl.uniform4f(uFragColorPointer,0.5,1.0,0.0,1.0);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 46, 4);
+        gl.uniform4f(uFragColorPointer,0.7,0.3,0.0,1.0);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 50, 4);
+        gl.uniform4f(uFragColorPointer,1.0,0.4,0.2,1.0);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 54, 4);
+        gl.uniform4f(uFragColorPointer,0.6,0.4,0.0,1.0);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 58, 4);
+        
+        //outside
+        gl.uniform4f(uFragColorPointer,0.0,0.0,0.8,1.0);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 14, 4);
+        gl.uniform4f(uFragColorPointer,1.0,0.0,1.0,1.0);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 18, 4);
+        gl.uniform4f(uFragColorPointer,0.0,1.0,1.0,1.0);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 22, 4);
+        gl.uniform4f(uFragColorPointer,0.5,0.0,1.0,1.0);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 26, 4);
+        gl.uniform4f(uFragColorPointer,0.0,0.5,1.0,1.0);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 30, 4);
+        gl.uniform4f(uFragColorPointer,0.5,0.5,1.0,1.0);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 34, 4);
+
+        //front
+        gl.uniform4f(uFragColorPointer,1.0,0.0,0.0,1.0);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 62, 14);
+      }
+    </script>
+  </head>
+
+  <body onload="main()">
+    <canvas id="main_canvas" width="500" height="500" style="border: 1px black solid; ">
+    </canvas>
+    <br/>
+    <button id="xRotate">Rotate on X</button>
+    <button id="yRotate">Rotate on Y</button>
+  </body>
+</html>
